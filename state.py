@@ -42,10 +42,10 @@ class State:
 		board =  '_' * (2 * self.cols - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.cols - 1) + '\n'
 		board += '\n'
 		c_t = self.check_terminal()
-		if c_t != None:
+		if c_t[0] == 'terminal':
 			board += 'utility value: ' + str(c_t)
 		else:
-			board += 'state is not termial'
+			board += 'state is not termial, eval value: ' + str(c_t[1])
 		return board
 
 
@@ -85,9 +85,9 @@ class State:
 		#check whether there is a row of 4 of the same token
 		for row in self.board:
 			if row == ['X'] * 4:
-				return 1000
+				return ('terminal',1000)
 			elif row == ['O'] * 4:
-				return -1000
+				return ('terminal',-1000)
 			elif '*' in row:
 				star_flag = True
 
@@ -95,26 +95,31 @@ class State:
 		flipped_board = [[self.board[i][j] for i in range(self.cols) ] for j in range(self.rows)] #now columns are grouped together
 		for col in flipped_board:
 			if col == ['X'] * 4:
-				return 1000
+				return ('terminal',1000)
 			elif col == ['O'] * 4:
-				return 'O'
+				return ('terminal',-1000)
 
 		#check diagonals - assumes equal rows and columns
 		diag1 = [self.board[i][i] for i in range(self.cols)]
 		if diag1 == ['X'] * 4:
-			return 1000
+			return ('terminal',1000)
 		elif diag1 == ['O'] * 4:
-			return -1000
+			return ('terminal',-1000)
 		diag2 = [self.board[i][self.cols-1-i] for i in range(self.cols)]
 		if diag1 == ['X'] * 4:
-			return 1000
+			return ('terminal',1000)
 		elif diag1 == ['O'] * 4:
-			return -1000
+			return ('terminal',-1000)
 
 		if star_flag == False:
-			return self.eval()
+			return ('terminal',0)
 		else:
-			return None
+			return ('not terminal',self.eval())
+	class tokenRef:
+		def __init__(self,token):
+			self.token = token
+		def __eq__(self,rhs):
+			return self.token == rhs.token
 	def eval(self):
 		'''
 			assumes there is a tie
@@ -122,37 +127,36 @@ class State:
 			count amount of X3s X2s and O3s and O1s
 		'''
 		var_list = [0] * 6 # [X3,X2,X1,O3,O2,O1]
+		
+		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
 		board = copy.deepcopy(self.board)
-		#TODO: modify this to disregard already-counted tokens
-		def increment_vars(lst):
-			str_lst = ''.join(lst)
-			if 3*'X' in str_lst:
-				var_list[0] += 1
-			elif 2*'X' in str_lst:
-				var_list[1] += 1
-			var_list[2] += lst.count('X')
-			if 3*'O' in str_lst:
-				var_list[3] += 1
-			elif 2*'O' in str_lst:
-				var_list[4] += 1
-			var_list[5] += lst.count('O')
-
 		flipped_board = [[board[i][j] for i in range(self.cols) ] for j in range(self.rows)] #now columns are grouped together
 		diag1 = [board[i][i] for i in range(self.cols)]
 		diag2 = [board[i][self.cols-1-i] for i in range(self.cols)]
 		
+		def increment_vars(lst):
+			count_X = lst.count('X')
+			count_O = lst.count('O')
+			if count_X > 0 and count_O == 0:
+				var_list[2-count_X+1] += 1
+			if count_X == 0 and count_O > 0:
+				var_list[5-count_O+1] += 1
+
 		for row in board:
 			increment_vars(row)
+
 		for col in flipped_board:
 			increment_vars(col)
 		increment_vars(diag1)
 		increment_vars(diag2)
+
 		X3 = var_list[0]
 		X2 = var_list[1]
 		X1 = var_list[2]
 		O3 = var_list[3]
 		O2 = var_list[4]
 		O1 = var_list[5]
+		print(var_list)
 		return (6*X3+3*X2+X1)-(6*O3+3*O2+O1)
 		
 import random	

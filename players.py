@@ -16,3 +16,10 @@ class Daniel:
 		'''
 			min
 		'''
+
+class Humanoid:
+	def __init__(self,name="Player1",token='X'):
+		self.name = name
+		self.token = token
+	def move(self,row,col):
+		
