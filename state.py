@@ -4,17 +4,25 @@ import copy
 
 
 class State:
-	def __init__(self):
+	def __init__(self,board=None):
 		'''
 		members: 
 			ASSUMPTION: max player is X
 			2d list - board
 		'''
-		self.rows = 4
-		self.cols = 4
-		self.board = [['*' for j in range(self.cols)] for i in range(self.rows)]
 		self.max_util = 1000
 		self.min_util = -1000
+		self.rows = 4
+		self.cols = 4
+		self.last_action = ('*',0,0)
+		self.v = None
+
+		if board == None:
+			self.board = [['*' for j in range(self.cols)] for i in range(self.rows)]
+			
+		else:
+			self.board = board
+		
 		'''
 		j
 			0  1  2  3
@@ -31,10 +39,6 @@ class State:
 		i=2 *  *  *  O
 		i=3 *  *  X  *
 
-		'''
-	def p_init(self,board):
-		'''
-		return a new State with board as member
 		'''
 	def print_board(self):
 		return '_' * (2 * self.cols - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.cols - 1) + '\n'
@@ -62,20 +66,23 @@ class State:
 		'''
 		if self.board[row][col] == '*':
 			self.board[row][col] = token
+			self.last_action = (token,row,col)
 			return True
 		else:
 			print('invalid move')
 			return False
 
 	def possible_successors(self,token):
-		if token == 'X':
-			#generate successor states
-			'''
-			'''
-		elif token == 'O':
-			#generate successor states
-			'''
-			'''
+		board = copy.deepcopy(self.board)
+		for i in range(self.rows):
+			for j in range(self.cols):
+				if board[i][j] == '*':
+					board[i][j] = token
+					successor =  State(board)
+					successor.last_action = (token,i,j)
+					yield successor
+					board[i][j] = '*'
+
 	def check_terminal(self):
 		'''
 			return 'O' / 'X' / 'Tie' / None (not terminal)
@@ -156,9 +163,7 @@ class State:
 		O3 = var_list[3]
 		O2 = var_list[4]
 		O1 = var_list[5]
-		print(var_list)
 		return (6*X3+3*X2+X1)-(6*O3+3*O2+O1)
-		
 import random	
 def rand_move():
 	tokens = ['X','O']
@@ -170,12 +175,17 @@ def test():
 	'''
 		interactive testing
 	'''
+
+	'''
 	s = State()
 	print(s,'\n')
 	s.make_move('X',1,0)
 	print(s)
 	print(s.board)
 
+	for successor in s.possible_successors('O'):
+		print(successor)
+	
 	command = ''
 	moves = 0
 	while command!='done()':
@@ -194,4 +204,5 @@ def test():
 			print('illegal move')
 		else:
 			moves += 1
+	'''
 test()
