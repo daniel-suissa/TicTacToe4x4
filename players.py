@@ -1,4 +1,4 @@
-
+import gui
 class AIPlayer:
 	
 	def __init__(self, token,difficulty = 'medium'):

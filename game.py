@@ -1,7 +1,11 @@
 import players
 import state
+import gui
+
 class Game:
 	def __init__(self):
+
+		self.gui = 
 		params = self.init_from_console()
 		if params[1] == 'H':
 			self.player1 = players.HumanPlayer(params[0],params[2])
@@ -17,6 +21,11 @@ class Game:
 			self.player2 = players.AIPlayer(player2token,params[5]) 
 		self.state = state.State()
 		self.curr_player = self.player1
+
+		root=Tk()
+		root.title("n x n Tic Tac Toe")
+		self.app=main(root,4,self)
+		
 	def next_player(self):
 		if self.curr_player == self.player1:
 			self.curr_player = self.player2
@@ -28,11 +37,13 @@ class Game:
 		'''
 		#TODO: write this
 		return ('Player1','H','O','Player2','AI','hard')
-	def test(self):
+	def go(self):
+		
 		while self.state.check_terminal()[0] != 'terminal':
 			print(self.state)
 			self.curr_player.move(self.state)
 			self.next_player()
 		print(self.state)
+		root.mainloop()
 game = Game()
-game.test()
+game.go()
