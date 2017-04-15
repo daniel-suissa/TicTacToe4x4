@@ -1,10 +1,11 @@
 import gui
 class AIPlayer:
 	
-	def __init__(self, token,difficulty = 'medium'):
+	def __init__(self, token,difficulty):
 		'''
 		difficulty determines cutoff
 		'''
+		self.gui = gui
 		diff = {'easy': 3, 'medium' : 4, 'hard' : 5}
 		self.cutoff = diff[difficulty]
 		self.token = token
@@ -23,10 +24,11 @@ class AIPlayer:
 		pruning_max = 0
 		pruning_min = 0
 		v,move,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min = self.max(state,state.min_util,state.max_util,0,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
-		state.make_move(*move)
+		#state.make_move(*move) #to make move directly through console
 		print('cutoff: ', did_cutoff, ' depth_reached: ', depth_reached, '#nodes: ', nodes_count, ' max pruning: ', pruning_max, ' min_pruning: ', pruning_min)
 		self.num_moves += 2
 		self.cutoff+= 1
+		return move
 	def max(self,state,alpha,beta,depth,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min):
 		'''
 			max
@@ -79,11 +81,14 @@ class AIPlayer:
 				return (v,best_action,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
 			beta = max(beta,v)
 		return (v,best_action,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
+
+#clean this up an cleanup
 class HumanPlayer:
-	def __init__(self,name="Player1",token='X'):
+	def __init__(self,name,token):
 		self.name = name
 		self.token = token
-	def move(self, state):
+		self.gui = gui
+	def move_on_console(self, state):
 		'''
 		console version
 		'''
@@ -92,3 +97,8 @@ class HumanPlayer:
 		while(not state.make_move(token,int(row),int(col))):
 			input("Oops, invalid move. Go again: ")
 		return (token,int(row),int(col))
+	def move_on_gui(self):
+		self.gui.play()
+	def move(self,state):
+		self.move_on_gui()
+
