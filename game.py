@@ -49,6 +49,8 @@ class Game:
 			self.canvas.create_rectangle(0,100*i,self.n*100,100*i+100, outline="black")  #mid horizontal rectangle
 	def start2(self):
 		#Starts the game
+		self.Start2.config(text = 'Tic Tac Toe Game!')
+		self.state = state.State()
 		print(self.state)
 		self.canvas.delete(ALL)
 		self.label['text']=('Tic Tac Toe Game')
@@ -92,6 +94,8 @@ class Game:
 			self.AImove()
 		self.successful_move = False				
 		print(self.state)
+		if self.state.check_terminal()[0] == 'terminal':
+			self.end()
 	def AImove(self):
 		'''
 		ASSUMPTION: current player is AI player
@@ -110,10 +114,7 @@ class Game:
 		return (token,row,col)
 	def end(self):
 		self.canvas.unbind("<ButtonPress-1>")
-		self.j=True
-
-
-
+		self.Start2.config(text = 'Play Again!')
     #-----GAME MANAGEMENT METHODS
 		
 		

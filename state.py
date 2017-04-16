@@ -171,11 +171,11 @@ def rand_move():
 	rand_row = random.randint(0,3)
 	rand_col = random.randint(0,3)
 	return (rand_tok,rand_row,rand_col)
+
+	
 def test():
 	'''
 		interactive testing
-	'''
-
 	'''
 	s = State()
 	print(s,'\n')
@@ -204,5 +204,3 @@ def test():
 			print('illegal move')
 		else:
 			moves += 1
-	'''
-test()
