@@ -4,7 +4,7 @@ import copy
 
 
 class State:
-	def __init__(self,board=None):
+	def __init__(self,n,board=None):
 		'''
 		members: 
 			ASSUMPTION: max player is X
@@ -12,13 +12,12 @@ class State:
 		'''
 		self.max_util = 1000
 		self.min_util = -1000
-		self.rows = 4
-		self.cols = 4
+		self.n = n
 		self.last_action = ('*',0,0)
 		self.v = None
 
 		if board == None:
-			self.board = [['*' for j in range(self.cols)] for i in range(self.rows)]
+			self.board = [['*' for j in range(self.n)] for i in range(self.n)]
 			
 		else:
 			self.board = board
@@ -41,9 +40,9 @@ class State:
 
 		'''
 	def print_board(self):
-		return '_' * (2 * self.cols - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.cols - 1) + '\n'
+		return '_' * (2 * self.n - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.n - 1) + '\n'
 	def __str__(self):
-		board =  '_' * (2 * self.cols - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.cols - 1) + '\n'
+		board =  '_' * (2 * self.n - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.n - 1) + '\n'
 		board += '\n'
 		c_t = self.check_terminal()
 		if c_t[0] == 'terminal':
@@ -74,48 +73,49 @@ class State:
 
 	def possible_successors(self,token):
 		board = copy.deepcopy(self.board)
-		for i in range(self.rows):
-			for j in range(self.cols):
+		for i in range(self.n):
+			for j in range(self.n):
 				if board[i][j] == '*':
 					board[i][j] = token
-					successor =  State(board)
+					successor =  State(self.n,board)
 					successor.last_action = (token,i,j)
 					yield successor
 					board[i][j] = '*'
 
 	def check_terminal(self):
 		'''
-			return 'O' / 'X' / 'Tie' / None (not terminal)
+			returns a tuple with terminal/not termianl and utility value
+			X is the max utility token. This shouldn't matter for the AI because it can choose whether to minimize or maximize
 		'''
 		star_flag = False
 
-		#check whether there is a row of 4 of the same token
+		#check whether there is a row of n of the same token
 		for row in self.board:
-			if row == ['X'] * 4:
+			if row == ['X'] * self.n:
 				return ('terminal',1000)
-			elif row == ['O'] * 4:
+			elif row == ['O'] * self.n:
 				return ('terminal',-1000)
 			elif '*' in row:
 				star_flag = True
 
-		# check whether there is a column of 4 of the same token
-		flipped_board = [[self.board[i][j] for i in range(self.cols) ] for j in range(self.rows)] #now columns are grouped together
+		# check whether there is a column of n of the same token
+		flipped_board = [[self.board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
 		for col in flipped_board:
-			if col == ['X'] * 4:
+			if col == ['X'] * self.n:
 				return ('terminal',1000)
-			elif col == ['O'] * 4:
+			elif col == ['O'] * self.n:
 				return ('terminal',-1000)
 
 		#check diagonals - assumes equal rows and columns
-		diag1 = [self.board[i][i] for i in range(self.cols)]
-		if diag1 == ['X'] * 4:
+		diag1 = [self.board[i][i] for i in range(self.n)]
+		if diag1 == ['X'] * self.n:
 			return ('terminal',1000)
-		elif diag1 == ['O'] * 4:
+		elif diag1 == ['O'] * self.n:
 			return ('terminal',-1000)
-		diag2 = [self.board[i][self.cols-1-i] for i in range(self.cols)]
-		if diag1 == ['X'] * 4:
+		diag2 = [self.board[i][self.n-1-i] for i in range(self.n)]
+		if diag1 == ['X'] * self.n:
 			return ('terminal',1000)
-		elif diag1 == ['O'] * 4:
+		elif diag1 == ['O'] * self.n:
 			return ('terminal',-1000)
 
 		if star_flag == False:
@@ -137,9 +137,9 @@ class State:
 		
 		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
 		board = copy.deepcopy(self.board)
-		flipped_board = [[board[i][j] for i in range(self.cols) ] for j in range(self.rows)] #now columns are grouped together
-		diag1 = [board[i][i] for i in range(self.cols)]
-		diag2 = [board[i][self.cols-1-i] for i in range(self.cols)]
+		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
+		diag1 = [board[i][i] for i in range(self.n)]
+		diag2 = [board[i][self.n-1-i] for i in range(self.n)]
 		
 		def increment_vars(lst):
 			count_X = lst.count('X')
@@ -172,7 +172,7 @@ def rand_move():
 	rand_col = random.randint(0,3)
 	return (rand_tok,rand_row,rand_col)
 
-	
+
 def test():
 	'''
 		interactive testing

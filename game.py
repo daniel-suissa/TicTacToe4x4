@@ -4,7 +4,7 @@ from tkinter import Frame, Canvas, Label, Button, LEFT,RIGHT, ALL, Tk
 
 class Game:
 	def __init__(self,master,n):
-		self.state = state.State()
+		self.state = state.State(n)
 
 		'''
 		----GUI PART
@@ -50,7 +50,7 @@ class Game:
 	def start2(self):
 		#Starts the game
 		self.Start2.config(text = 'Tic Tac Toe Game!')
-		self.state = state.State()
+		self.state = state.State(self.n)
 		print(self.state)
 		self.canvas.delete(ALL)
 		self.label['text']=('Tic Tac Toe Game')
@@ -115,6 +115,9 @@ class Game:
 	def end(self):
 		self.canvas.unbind("<ButtonPress-1>")
 		self.Start2.config(text = 'Play Again!')
+
+
+
     #-----GAME MANAGEMENT METHODS
 		
 		
