@@ -132,22 +132,24 @@ class State:
 			assumes there is a tie
 			works best for 4x4 - non generic
 			count amount of X3s X2s and O3s and O1s
+			TODO: test generality
 		'''
-		var_list = [0] * 6 # [X3,X2,X1,O3,O2,O1]
-		
+		var_list = [0] * (self.n-1) * 2 # [X3,X2,X1,O3,O2,O1]
+		#[x4,x3,x2,x1,o4,o3,o2,o1]
+		#[0.  1. 2. 3. 4. 5. 6. 7]
 		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
 		board = copy.deepcopy(self.board)
 		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
 		diag1 = [board[i][i] for i in range(self.n)]
-		diag2 = [board[i][self.n-1-i] for i in range(self.n)]
+		diag2 = [board[i][(self.n-1)-i] for i in range(self.n)]
 		
 		def increment_vars(lst):
 			count_X = lst.count('X')
 			count_O = lst.count('O')
 			if count_X > 0 and count_O == 0:
-				var_list[2-count_X+1] += 1
+				var_list[(self.n-1)-count_X] += 1
 			if count_X == 0 and count_O > 0:
-				var_list[5-count_O+1] += 1
+				var_list[2*(self.n-1)-count_O] += 1
 
 		for row in board:
 			increment_vars(row)
@@ -156,20 +158,20 @@ class State:
 			increment_vars(col)
 		increment_vars(diag1)
 		increment_vars(diag2)
-
-		X3 = var_list[0]
-		X2 = var_list[1]
-		X1 = var_list[2]
-		O3 = var_list[3]
-		O2 = var_list[4]
-		O1 = var_list[5]
-		return (6*X3+3*X2+X1)-(6*O3+3*O2+O1)
+		eval_coefs = [(i-1)*3 for i in range(self.n-1,0,-1)]
+		eval_coefs[-1] = 1
+		eval_sum = 0
+		for i in range(self.n//2):
+			eval_sum += eval_coefs[i] * var_list[i]
+		for i in range(self.n//2):
+			eval_sum -= eval_coefs[i] * var_list[i+self.n//2-1]
+		return eval_sum
 import random	
 def rand_move():
 	tokens = ['X','O']
 	rand_tok = tokens[random.randint(0,1)]
-	rand_row = random.randint(0,3)
-	rand_col = random.randint(0,3)
+	rand_row = random.randint(0,self.n-1)
+	rand_col = random.randint(0,self.n-1)
 	return (rand_tok,rand_row,rand_col)
 
 

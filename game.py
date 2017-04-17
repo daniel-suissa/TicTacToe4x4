@@ -150,5 +150,5 @@ class Game:
 		
 root=Tk()
 root.title("n x n Tic Tac Toe")
-game = Game(root,4)
+game = Game(root,5)
 root.mainloop()
