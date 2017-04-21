@@ -7,7 +7,7 @@ import csv
 AI_TIMES = [] #keeping track of game's average AI decision time
 
 class Game:
-	def __init__(self,master,n,eval_f):
+	def __init__(self,master,n,eval_f,params):
 		self.state = state.State(n,eval_f)
 		'''
 		----GUI PART
@@ -26,7 +26,6 @@ class Game:
 		self.i = 0 #number of moves
 		self.successful_move = False #this member is going to tell us whether human made a valid move so AI can go
 
-		params = self.init_from_console()
 		if params[1] == 'H':
 			self.player1 = players.HumanPlayer(params[0],params[2])
 		else:
@@ -138,12 +137,6 @@ class Game:
 			self.curr_player = self.player2
 		else:
 			self.curr_player = self.player1
-	def init_from_console(self):
-		'''
-		output: tuple (player1_name,player1_type,player1_token,player2_name,player2_type,difficulty)
-		'''
-		#TODO: write this
-		return ('Player1','H','O','Player2','AI','hard')
 
 	#clean the method at cleanup
 	def go(self):
@@ -159,18 +152,19 @@ class Game:
 		print(self.state)
 
 
-eval_f = '2'
+eval_f = '1'
 root=Tk()
 root.title("n x n Tic Tac Toe")
 n = 4
-game = Game(root,n,eval_f)
+params = ['Player1','H','O','Player2','AI','hard'] #TODO: change this to be gotten from GUI
+game = Game(root,n,eval_f,params)
 root.mainloop()
 AI_avg = sum(AI_TIMES)/len(AI_TIMES)
 print("AVG AI thinking time: ", AI_avg)
 
 
-if n == 4: #only relevant for the 4x4 version
-	row=[eval_f,str(AI_avg)]
+if n == 4: #logging only relevant for  4x4 mode
+	row=[params[5], eval_f,str(AI_avg)]
 	with open(r'AImoves.csv', 'a') as f:
 	    writer = csv.writer(f)
 	    writer.writerow(row)

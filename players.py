@@ -1,7 +1,7 @@
 
 class AIPlayer:
-	diff = {'easy': 1, 'medium' : 2, 'hard' : 3}
-	increments = {'easy': 1, 'medium' : 2, 'hard' : 3}
+	diff = {'easy': 1, 'medium' : 1, 'hard' : 3}
+	increments = {'easy': 1, 'medium' : 2, 'hard' : 2}
 	def __init__(self, token,difficulty):
 		'''
 		difficulty determines cutoff
@@ -19,13 +19,14 @@ class AIPlayer:
 		'''
 		'''
 		did_cutoff = False
-		depth_reached = 0
+		depth_reached = 0 
 		nodes_count = 0
 		pruning_max = 0
 		pruning_min = 0
+		#note that depth will contain the current depth and depth_reached is the max depth reached in the current subtree
 		v,move,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min = self.max(state,state.min_util,state.max_util,0,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
 		#state.make_move(*move) #to make move directly through console
-		print('cutoff: ', did_cutoff, ' depth_reached: ', depth_reached, '#nodes: ', nodes_count, ' max pruning: ', pruning_max, ' min_pruning: ', pruning_min)
+		print('cutoff_level: ', self.cutoff, 'did_cutoff?: ', did_cutoff, ' depth_reached: ', depth_reached, '#nodes: ', nodes_count, ' max pruning: ', pruning_max, ' min_pruning: ', pruning_min)
 		self.num_moves += 2
 		self.cutoff += self.increment
 		return move
@@ -33,7 +34,6 @@ class AIPlayer:
 		'''
 			max
 		'''
-		depth_reached += 1
 		c_t = state.check_terminal()
 		if c_t[0] == 'terminal' or depth >= self.cutoff:
 			if depth >= self.cutoff:
@@ -41,11 +41,11 @@ class AIPlayer:
 			return (c_t[1],state.last_action,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min) #the utility value / eval value
 		v = state.min_util
 		best_action = None
-		depth_reached_temp = depth_reached #remember depth reached to not overincrement
+		non_incremented_depth_reached = depth_reached
 		for successor in state.possible_successors(self.token):
-			depth_reached = depth_reached_temp
 			nodes_count += 1
-			new_v,move,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min = self.min(successor,alpha,beta,depth+1,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
+			new_v,move,did_cutoff,new_depth_reached,nodes_count,pruning_max,pruning_min = self.min(successor,alpha,beta,depth+1,did_cutoff,non_incremented_depth_reached+1,nodes_count,pruning_max,pruning_min)
+			depth_reached = max(new_depth_reached,depth_reached)
 			new_v = max(v,new_v)
 			if new_v != v or best_action == None:
 				best_action = successor.last_action
@@ -59,7 +59,6 @@ class AIPlayer:
 		'''
 			min
 		'''
-		depth_reached += 1
 		c_t = state.check_terminal()
 		if c_t[0] == 'terminal' or depth >= self.cutoff:
 			#print('reached end. eval is: ', c_t[1])
@@ -68,11 +67,11 @@ class AIPlayer:
 			return (c_t[1],state.last_action,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min) #the utility value / eval value
 		v = state.max_util
 		best_action = None
-		depth_reached_temp = depth_reached
+		non_incremented_depth_reached = depth_reached
 		for successor in state.possible_successors(self.opponent):
-			depth_reached = depth_reached_temp
 			nodes_count += 1
-			new_v,move,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min = self.max(successor,alpha,beta,depth+1,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
+			new_v,move,did_cutoff,new_depth_reached,nodes_count,pruning_max,pruning_min = self.max(successor,alpha,beta,depth+1,did_cutoff,non_incremented_depth_reached+1,nodes_count,pruning_max,pruning_min)
+			depth_reached = max(new_depth_reached,depth_reached)
 			new_v = min(v,new_v)
 			best_action = successor.last_action
 			v = new_v
