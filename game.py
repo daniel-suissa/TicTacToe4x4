@@ -56,6 +56,12 @@ class Game:
 		self.label['text']=('Tic Tac Toe Game')
 		self._board()
 		self.canvas.bind("<ButtonPress-1>", self.dgplayer)
+	def human_move(self,k,j):
+		'''
+		input: 
+			(int) k - 
+		'''
+
 	def dgplayer(self,event):
 		for k in range(0,self.n*100,100):
 			for j in range(0,self.n*100,100):
@@ -132,8 +138,6 @@ class Game:
 		'''
 		#TODO: write this
 		return ('Player1','H','O','Player2','AI','hard')
-	def move_on_gui(self):
-		return app.play()
 
 	#clean the method at cleanup
 	def go(self):
@@ -150,5 +154,5 @@ class Game:
 		
 root=Tk()
 root.title("n x n Tic Tac Toe")
-game = Game(root,5)
+game = Game(root,4)
 root.mainloop()

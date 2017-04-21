@@ -161,10 +161,11 @@ class State:
 		eval_coefs = [(i-1)*3 for i in range(self.n-1,0,-1)]
 		eval_coefs[-1] = 1
 		eval_sum = 0
-		for i in range(self.n//2):
-			eval_sum += eval_coefs[i] * var_list[i]
-		for i in range(self.n//2):
-			eval_sum -= eval_coefs[i] * var_list[i+self.n//2-1]
+		#print(var_list,eval_coefs,end='\n')
+		for i in range(self.n-1): #summing Xs
+			eval_sum += (eval_coefs[i] * var_list[i])
+		for i in range(self.n-1,self.n*2-2): #subtracting Os
+			eval_sum -= (eval_coefs[i-(self.n-1)] * var_list[i])
 		return eval_sum
 import random	
 def rand_move():
