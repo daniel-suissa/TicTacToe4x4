@@ -1,15 +1,22 @@
 
 import copy
-
+import math
 
 
 class State:
-	def __init__(self,n,board=None):
+	def __init__(self,n,eval_f='1',board=None):
 		'''
 		members: 
 			ASSUMPTION: max player is X
 			2d list - board
 		'''
+		self.eval_t = eval_f #which eval funtion to use 1 or 2
+		if eval_f == '1': #the actual eval function
+			self.eval_f = self.eval
+		elif eval_f == '2':
+			self.eval_f = self.eval2
+		else:
+			raise Exception('invalid eval function')
 		self.max_util = 1000
 		self.min_util = -1000
 		self.n = n
@@ -77,7 +84,7 @@ class State:
 			for j in range(self.n):
 				if board[i][j] == '*':
 					board[i][j] = token
-					successor =  State(self.n,board)
+					successor =  State(self.n,self.eval_t,board)
 					successor.last_action = (token,i,j)
 					yield successor
 					board[i][j] = '*'
@@ -113,15 +120,15 @@ class State:
 		elif diag1 == ['O'] * self.n:
 			return ('terminal',-1000)
 		diag2 = [self.board[i][self.n-1-i] for i in range(self.n)]
-		if diag1 == ['X'] * self.n:
+		if diag2 == ['X'] * self.n:
 			return ('terminal',1000)
-		elif diag1 == ['O'] * self.n:
+		elif diag2 == ['O'] * self.n:
 			return ('terminal',-1000)
 
 		if star_flag == False:
 			return ('terminal',0)
 		else:
-			return ('not terminal',self.eval())
+			return ('not terminal',self.eval_f()[0])
 	class tokenRef:
 		def __init__(self,token):
 			self.token = token
@@ -142,7 +149,6 @@ class State:
 		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
 		diag1 = [board[i][i] for i in range(self.n)]
 		diag2 = [board[i][(self.n-1)-i] for i in range(self.n)]
-		
 		def increment_vars(lst):
 			count_X = lst.count('X')
 			count_O = lst.count('O')
@@ -166,7 +172,20 @@ class State:
 			eval_sum += (eval_coefs[i] * var_list[i])
 		for i in range(self.n-1,self.n*2-2): #subtracting Os
 			eval_sum -= (eval_coefs[i-(self.n-1)] * var_list[i])
-		return eval_sum
+		return (eval_sum,var_list)
+	
+	def eval2(self):
+		#intuition: building more options to win is more desireable than having as many in line
+		min_tokens  = math.ceil(self.n/2) #this will be the point from which we consider a situation that a player has a chance to win
+		eval_sum, var_list = self.eval()
+		Xoptions = var_list[self.n - 1 - min_tokens] 
+		Ooptions = var_list[2*(self.n - 1) - min_tokens] 
+		print([Xoptions,Ooptions])
+		if Xoptions >= 2:
+			eval_sum += Xoptions * 100
+		if Ooptions >= 2:
+			eval_sum -= Ooptions * 100
+		return (eval_sum,var_list)
 import random	
 def rand_move():
 	tokens = ['X','O']

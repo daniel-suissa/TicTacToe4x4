@@ -1,11 +1,14 @@
 import players
 import state
 from tkinter import Frame, Canvas, Label, Button, LEFT,RIGHT, ALL, Tk
+import time
+import csv
+
+AI_TIMES = [] #keeping track of game's average AI decision time
 
 class Game:
-	def __init__(self,master,n):
-		self.state = state.State(n)
-
+	def __init__(self,master,n,eval_f):
+		self.state = state.State(n,eval_f)
 		'''
 		----GUI PART
 		'''
@@ -107,6 +110,7 @@ class Game:
 		ASSUMPTION: current player is AI player
 		ASSUMPTION: AI cannot make an illegal move (no need to re-prompt for move)
 		'''
+		start = time.clock()
 		print('AI thinking...')
 		token,row,col = self.curr_player.move(self.state)
 		print('AI wants to play at row: ', row, ' and column: ', col)
@@ -117,6 +121,8 @@ class Game:
 		self.i += 1
 		self.next_player()
 		self.state.make_move(token,row,col)
+		AI_TIMES.append(time.clock() - start)
+
 		return (token,row,col)
 	def end(self):
 		self.canvas.unbind("<ButtonPress-1>")
@@ -151,8 +157,20 @@ class Game:
 			self.app.move_maid = True
 			self.next_player()
 		print(self.state)
-		
+
+
+eval_f = '2'
 root=Tk()
 root.title("n x n Tic Tac Toe")
-game = Game(root,4)
+n = 4
+game = Game(root,n,eval_f)
 root.mainloop()
+AI_avg = sum(AI_TIMES)/len(AI_TIMES)
+print("AVG AI thinking time: ", AI_avg)
+
+
+if n == 4: #only relevant for the 4x4 version
+	row=[eval_f,str(AI_avg)]
+	with open(r'AImoves.csv', 'a') as f:
+	    writer = csv.writer(f)
+	    writer.writerow(row)
