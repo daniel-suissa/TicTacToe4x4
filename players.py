@@ -1,7 +1,10 @@
 
 class AIPlayer:
-	diff = {'easy': 1, 'medium' : 1, 'hard' : 3}
-	increments = {'easy': 1, 'medium' : 2, 'hard' : 2}
+	diff = {'easy': 1, 'medium' : 2, 'hard' : 3}
+	increments = {'easy': 0, 'medium' : 0, 'hard' : 2}
+	#easy   1 2 3
+	#medium 2 3 4 5 6 7
+	#hard   3 5 7 9
 	def __init__(self, token,difficulty):
 		'''
 		difficulty determines cutoff

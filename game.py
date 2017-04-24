@@ -1,14 +1,16 @@
 import players
 import state
-from tkinter import Frame, Canvas, Label, Button, LEFT,RIGHT, ALL, Tk
+#from tkinter import Frame, Canvas, Label, Button, LEFT,RIGHT, ALL, Tk
+from tkinter import *
 import time
+
 import csv
 
 AI_TIMES = [] #keeping track of game's average AI decision time
 
 class Game:
-	def __init__(self,master,n,eval_f,params):
-		self.state = state.State(n,eval_f)
+	def __init__(self,master,n,difficulty,params,i):
+		self.state = state.State(n,difficulty)
 		'''
 		----GUI PART
 		'''
@@ -21,9 +23,9 @@ class Game:
 		self.label.pack(fill="both", expand=True)
 		self.frameb=Frame(self.frame)
 		self.frameb.pack(fill="both", expand=True)
-		self.Start2=Button(self.frameb, text='Click here to start playing', height=4, command=self.start2,bg='purple', fg='white')
-		self.Start2.pack(fill="both", expand=True, side=LEFT)  
-		self.i = 0 #number of moves
+		self.Start=Button(self.frameb, text='Click here to start playing', height=4, command=self.start,bg='purple', fg='white')
+		self.Start.pack(fill="both", expand=True, side=LEFT)  
+		self.i = i #number of moves
 		self.successful_move = False #this member is going to tell us whether human made a valid move so AI can go
 
 		if params[1] == 'H':
@@ -40,7 +42,6 @@ class Game:
 			self.player2 = players.AIPlayer(player2token,params[5])
 		self.curr_player = self.player1
 
-
 	#----GUI METHODS------#
 	def _board(self):
 		self.canvas.create_rectangle(0,0,100*self.n,100*self.n, outline="black")
@@ -49,15 +50,25 @@ class Game:
 		for i in range(1,self.n):
 			self.canvas.create_rectangle(100*i,self.n*100,100*i+100,0, outline="black") #mid vertical rectangles
 			self.canvas.create_rectangle(0,100*i,self.n*100,100*i+100, outline="black")  #mid horizontal rectangle
-	def start2(self):
+	
+	def start(self):
+
+		#----this part is an extension of __init__ to enable replaying
+		self.i = 0 #number of moves
+		self.successful_move = False #this member is going to tell us whether human made a valid move so AI can go
+		#---------
+
+
 		#Starts the game
-		self.Start2.config(text = 'Tic Tac Toe Game!')
-		self.state = state.State(self.n)
+		self.Start.config(text = 'Tic Tac Toe Game!')
+		self.state = state.State(self.n,self.difficulty)
 		print(self.state)
 		self.canvas.delete(ALL)
 		self.label['text']=('Tic Tac Toe Game')
 		self._board()
 		self.canvas.bind("<ButtonPress-1>", self.dgplayer)
+
+
 	def human_move(self,k,j):
 		'''
 		input: 
@@ -125,7 +136,7 @@ class Game:
 		return (token,row,col)
 	def end(self):
 		self.canvas.unbind("<ButtonPress-1>")
-		self.Start2.config(text = 'Play Again!')
+		self.Start.config(text = 'Play Again!')
 
 
 
@@ -151,20 +162,95 @@ class Game:
 			self.next_player()
 		print(self.state)
 
+def start_game(n , starting, player1_name, player1_type,token,player2_name,player2_type, difficulty):
+	#root.destroy()
 
-eval_f = '1'
-root=Tk()
-root.title("n x n Tic Tac Toe")
-n = 4
-params = ['Player1','H','O','Player2','AI','hard'] #TODO: change this to be gotten from GUI
-game = Game(root,n,eval_f,params)
-root.mainloop()
-AI_avg = sum(AI_TIMES)/len(AI_TIMES)
-print("AVG AI thinking time: ", AI_avg)
+	root=Tk()
+	root.title("n x n Tic Tac Toe")
+
+	params = [player1_name, player1_type,token,player2_name,player2_type, difficulty] 
+	game = Game(root,n,params[5],params,starting)
+	root.mainloop()
+	AI_avg = sum(AI_TIMES)/len(AI_TIMES)
+	print("AVG AI thinking time: ", AI_avg)
 
 
-if n == 4: #logging only relevant for  4x4 mode
-	row=[params[5], eval_f,str(AI_avg)]
-	with open(r'AImoves.csv', 'a') as f:
-	    writer = csv.writer(f)
-	    writer.writerow(row)
+	if n == 4: #logging only relevant for  4x4 mode
+		row=[params[5], eval_f,str(AI_avg)]
+		with open(r'AImoves.csv', 'a') as f:
+		    writer = csv.writer(f)
+		    writer.writerow(row)
+
+
+
+def menu():
+
+
+	#output: difficulty, n, params
+	
+	root=Tk()
+	root.title("n x n Tic Tac Toe")
+	nlabel=Label(root, text='n:')
+	nlabel.grid(row = 1,column = 1)
+	#nlabel.pack()
+
+	# Variable for the Optionmenu
+	n = StringVar()
+	# The menu
+	noptions = OptionMenu(root, n, "3","4","5","6")
+	noptions.grid(row=1, column=2)
+	# Set the variable to "a" as default
+	n.set("4")
+
+	difficulty_label = Label(root, text = 'Difficulty: ')
+	difficulty_label.grid(row = 2, column = 1)
+	difficulty = StringVar()
+	difficulty_options = OptionMenu(root, difficulty,"easy","medium","hard","Jarvis")
+	difficulty_options.grid(row = 2, column = 2)
+	difficulty.set("hard")
+	#player 1 is always a human
+	player1_name = StringVar()
+	player1_name_input = Entry(root)
+	player1_label = Label(root, text = "Player1 Name: ")
+	player1_label.grid(row = 3,column = 1)
+	player1_name_input.grid(row = 3, column = 2)
+
+
+	player2_name = StringVar()
+	player2_name_input = Entry(root)
+	player2_label = Label(root, text = "Player2 Name: ")
+	player2_label.grid(row = 4,column = 1)
+	player2_name_input.grid(row = 4, column = 2)
+
+	player2_type_label = Label(root, text = 'Player2 Type: ')
+	player2_type_label.grid(row = 5, column = 1)
+	player2_type = StringVar()
+	player2_type_options = OptionMenu(root, player2_type, "Human", "AI")
+	player2_type_options.grid(row = 5, column = 2)
+	player2_type.set("AI")
+
+
+	whostarts_label = Label(root, text = 'Who Starts: ')
+	whostarts_label.grid(row = 6, column = 1)
+	whostarts = StringVar()
+	whostarts_options = OptionMenu(root, whostarts, "Player1", "Player2")
+	whostarts_options.grid(row = 6, column = 2)
+	whostarts.set("Player1")
+
+	if player2_type.get() == 'Human':
+		player2_type = 'H'
+	if whostarts.get() == 'Player1':
+		starting = 0
+	else:
+		starting = 1
+
+	
+	def launch(): 
+		return start_game(int(n.get()), starting, player1_name.get(), 'H','O',player2_name.get(),player2_type.get(), difficulty.get())
+    
+	start_button = Button(root, text='Click here to start playing',command = launch)
+	start_button.grid(row = 7)
+	root.mainloop()
+	print("DEBUG")
+menu()
+

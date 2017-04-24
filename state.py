@@ -4,11 +4,16 @@ import math
 
 
 class State:
-	def __init__(self,n,eval_f='1',board=None):
+	
+	def __init__(self,n,difficulty,board=None):
 		'''
 		members: 
 			ASSUMPTION: max player is X
 			2d list - board
+		'''
+		difficulties = {'easy' : self.eval, 'medium': self.eval,'hard':self.eval, 'Jarvis':self.eval2 }
+		self.difficulty = difficulty
+		self.eval_f = difficulties[self.difficulty]
 		'''
 		self.eval_t = eval_f #which eval funtion to use 1 or 2
 		if eval_f == '1': #the actual eval function
@@ -17,6 +22,7 @@ class State:
 			self.eval_f = self.eval2
 		else:
 			raise Exception('invalid eval function')
+		'''
 		self.max_util = 1000
 		self.min_util = -1000
 		self.n = n
@@ -84,7 +90,7 @@ class State:
 			for j in range(self.n):
 				if board[i][j] == '*':
 					board[i][j] = token
-					successor =  State(self.n,self.eval_t,board)
+					successor =  State(self.n,self.difficulty,board)
 					successor.last_action = (token,i,j)
 					yield successor
 					board[i][j] = '*'
