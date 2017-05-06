@@ -10,47 +10,20 @@ class State:
 			ASSUMPTION: max player is X
 			2d list - board
 		'''
-		difficulties = {'easy' : self.easy_eval, 'medium': self.medium_eval,'hard':self.eval, 'Jarvis':self.jarvis_eval}
-		self.difficulty = difficulty
+		difficulties = {'easy' : self.easy_eval, 'medium': self.medium_eval,'hard':self.eval, 'Jarvis':self.jarvis_eval} #maps difficulties to the apt eval function
+		self.difficulty = difficulty 
 		self.eval_f = difficulties[self.difficulty]
-		'''
-		self.eval_t = eval_f #which eval funtion to use 1 or 2
-		if eval_f == '1': #the actual eval function
-			self.eval_f = self.eval
-		elif eval_f == '2':
-			self.eval_f = self.eval2
-		else:
-			raise Exception('invalid eval function')
-		'''
 		self.max_util = 1000
 		self.min_util = -1000
-		self.n = n
-		self.last_action = ('*',0,0)
-		self.v = None
-
-		if board == None:
+		self.n = n #for this project, n will be 4, but the project was generalized to work for any nxn board
+		self.last_action = ('*',0,0) #keeps the last action of the state. Used mainly by the AI player when successor states are generated
+		if board == None: # a board can be given or generated. First index represents a row. sedond index represent the column
 			self.board = [['*' for j in range(self.n)] for i in range(self.n)]
-			
 		else:
 			self.board = board
-		
-		'''
-		j
-			0  1  2  3
-		i=0	*  *  *  *
-		i=1 *  *  *  *
-		i=2 *  *  *  *
-		i=3 *  *  *  *
 
 
-		j
-			0  1  2  3
-		i=0	*  *  O  *
-		i=1 X  *  *  *
-		i=2 *  *  *  O
-		i=3 *  *  X  *
-
-		'''
+	#------Display Methods-------
 	def print_board(self):
 		return '_' * (2 * self.n - 1) + '\n' + '\n'.join([ ' '.join(row) for row in self.board]) + '\n' + '-' * (2 * self.n - 1) + '\n'
 	def __str__(self):
@@ -63,18 +36,20 @@ class State:
 			board += 'state is not termial, eval value: ' + str(c_t[1])
 		return board
 
-
 	def __repr__(self):
 		return str(self)
 
+	#--------------------------
+
 	def make_move(self,token,row,col):
-		if token != 'O' and token != 'X':
-			raise Exception('TokenInvalidError')
 		'''
 			check validity outputf location
 			put token in give location
 			output: True if ok, False if move wasn't made
 		'''
+		if token != 'O' and token != 'X':
+			raise Exception('TokenInvalidError')
+		
 		if self.board[row][col] == '*':
 			self.board[row][col] = token
 			self.last_action = (token,row,col)
@@ -83,7 +58,8 @@ class State:
 			print('invalid move')
 			return False
 
-	def possible_successors(self,token):
+	def possible_successors(self,token): 
+	#generates successors but placing the parameter token (X or O). The order is row 0-n and column 0-n (first every column before moving to next row)
 		board = copy.deepcopy(self.board)
 		for i in range(self.n):
 			for j in range(self.n):
@@ -139,12 +115,14 @@ class State:
 			self.token = token
 		def __eq__(self,rhs):
 			return self.token == rhs.token
+
 	def easy_eval(self): #gives same weight to every number of Xs and Os
 		return self.eval([1 for i in range(self.n-1,0,-1)])
+
 	def medium_eval(self): #gives different but not substantially different weights
 		return self.eval([(i-1)*1 for i in range(self.n-1,0,-1)])
+
 	def eval(self,eval_coefs = None): #weights differ by a factor of 3
-		eval_sum = 0
 		'''
 			input: eval_coefs must be size 2*(n-1)
 			assumes there is a tie
@@ -152,13 +130,12 @@ class State:
 			count amount of X3s X2s and O3s and O1s
 			TODO: test generality
 		'''
+		eval_sum = 0
+		
 		if eval_coefs == None:
 			 eval_coefs = [(i-1)*3 for i in range(self.n-1,0,-1)]
 		eval_coefs[-1] = 1
 		var_list = [0] * (self.n-1) * 2 # [X3,X2,X1,O3,O2,O1]
-		#[x4,x3,x2,x1,o4,o3,o2,o1]
-		#[0.  1. 2. 3. 4. 5. 6. 7]
-		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
 		board = copy.deepcopy(self.board)
 		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
 		diag1 = [board[i][i] for i in range(self.n)]
@@ -171,18 +148,21 @@ class State:
 			if count_X == 0 and count_O > 0:
 				var_list[2*(self.n-1)-count_O] += 1
 
-		for row in board:
+		for row in board: #count the variables in each row 
 			increment_vars(row)
 
-		for col in flipped_board:
+		for col in flipped_board: #count variables in each column
 			increment_vars(col)
-		increment_vars(diag1)
+
+		#count variables in both diagonals:
+		increment_vars(diag1) 
 		increment_vars(diag2)
 		
 		
-		#print(var_list,eval_coefs,end='\n')
+		
 		for i in range(self.n-1): #summing Xs
 			eval_sum += (eval_coefs[i] * var_list[i])
+
 		for i in range(self.n-1,self.n*2-2): #subtracting Os
 			eval_sum -= (eval_coefs[i-(self.n-1)] * var_list[i])
 		return (eval_sum,var_list)
@@ -190,17 +170,11 @@ class State:
 	def jarvis_eval(self): 
 		eval_sum = 0
 		'''
-			input: eval_coefs must be size 2*(n-1)
-			assumes there is a tie
-			works best for 4x4 - non generic
-			count amount of X3s X2s and O3s and O1s
-			TODO: test generality
+			similar to eval, only that Xs weights are higher than Os weights
 		'''
 		eval_coefs = [7,4,2,6,3,1]
 		var_list = [0] * (self.n-1) * 2 # [X3,X2,X1,O3,O2,O1]
-		#[x4,x3,x2,x1,o4,o3,o2,o1]
-		#[0.  1. 2. 3. 4. 5. 6. 7]
-		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
+
 		board = copy.deepcopy(self.board)
 		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
 		diag1 = [board[i][i] for i in range(self.n)]
@@ -222,14 +196,13 @@ class State:
 		increment_vars(diag2)
 		
 		
-		#print(var_list,eval_coefs,end='\n')
 		for i in range(self.n-1): #summing Xs
 			eval_sum += (eval_coefs[i] * var_list[i])
 		for i in range(self.n-1,self.n*2-2): #subtracting Os
 			eval_sum -= (eval_coefs[i] * var_list[i])
 		return (eval_sum,var_list)
 
-
+#--------Methods for testing-----#
 def rand_move():
 	tokens = ['X','O']
 	rand_tok = tokens[random.randint(0,1)]

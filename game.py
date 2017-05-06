@@ -10,12 +10,12 @@ import csv
 
 class Game:
 	def __init__(self,master,n,difficulty,params,player2starts):
+		
 		self.state = state.State(n,difficulty)
-		'''
-		----GUI PART
-		'''
 		self.difficulty =difficulty 
 		self.n = n
+
+		#----GUI members-----#
 		self.frame = Frame(master)
 		self.frame.pack(fill="both", expand=True)
 		self.canvas = Canvas(self.frame, width=100*n, height=100*n)
@@ -27,6 +27,7 @@ class Game:
 		self.Start=Button(self.frameb, text='Click here to start playing', height=4, command=self.start,bg='purple', fg='white')
 		self.Start.pack(fill="both", expand=True, side=LEFT) 
 		self.AI_TIMES = [] #for performance logging
+		#----------------------
 
 		if params[1] == 'H':
 			self.player1 = players.HumanPlayer(params[0],params[2])
@@ -47,11 +48,8 @@ class Game:
 		else:
 			self.curr_player = self.player1
 
-	#----GUI METHODS------#
-	def _board(self):
+	def _board(self): #creates the grid on the canvas
 		self.canvas.create_rectangle(0,0,100*self.n,100*self.n, outline="black")
-		#self.canvas.create_rectangle(100,300,200,0, outline="black") #mid vertical rectangle
-		#self.canvas.create_rectangle(0,100,300,200, outline="black")  #mid horizontal rectangle
 		for i in range(1,self.n):
 			self.canvas.create_rectangle(100*i,self.n*100,100*i+100,0, outline="black") #mid vertical rectangles
 			self.canvas.create_rectangle(0,100*i,self.n*100,100*i+100, outline="black")  #mid horizontal rectangle
@@ -66,6 +64,7 @@ class Game:
 		if type(self.player2) == players.AIPlayer:
 			self.player2.restart()
 		#---------
+
 		#Starts the game
 		self.Start.config(text = 'Tic Tac Toe Game!')
 		self.state = state.State(self.n,self.difficulty)
@@ -78,7 +77,9 @@ class Game:
 
 
 	def dgplayer(self,event):
-		if type(self.curr_player) == players.HumanPlayer:
+		#handles the mouse click. After each mouse click, the token will be placed and then the AI will play
+		#If the AI starts, the first mouseclick will cause the AI to play and then the player can keep playing
+		if type(self.curr_player) == players.HumanPlayer: #find correct square and place token
 			for k in range(0,self.n*100,100):
 				for j in range(0,self.n*100,100):
 					if event.x in range(k,k+100) and event.y in range(j,j+100):
@@ -94,10 +95,10 @@ class Game:
 								self.next_player()
 
 		print(self.state)
-		self.frame.update_idletasks()
+		self.frame.update_idletasks() #updates the GUI
 		self.frame.update()
 		if type(self.curr_player) == players.AIPlayer and self.state.check_terminal()[0] != 'terminal':
-			self.AImove()				
+			self.AImove()#play only if game is not over				
 		print(self.state)
 		if self.state.check_terminal()[0] == 'terminal':
 			self.end()
@@ -112,14 +113,18 @@ class Game:
 		print('AI wants to play at row: ', row, ' and column: ', col)
 		Y= 100*row+50
 		X= 100*col+50
+		#creates an 'X'
 		self.canvas. create_line( X+20, Y+20, X-20, Y-20, width=4, fill="black")
 		self.canvas. create_line( X-20, Y+20, X+20, Y-20, width=4, fill="black")
-		self.next_player()
-		self.state.make_move(token,row,col)
-		self.AI_TIMES.append(time.clock() - start)
 
+		self.next_player() #changes current_player
+		self.state.make_move(token,row,col)
+
+		self.AI_TIMES.append(time.clock() - start) #log the decision-time
 		return (token,row,col)
+
 	def end(self):
+		#called to terminate the game and enables re-playing
 		self.canvas.unbind("<ButtonPress-1>")
 		self.Start.config(text = 'Play Again!')
 		AI_avg = sum(self.AI_TIMES)/len(self.AI_TIMES)
@@ -131,12 +136,9 @@ class Game:
 		with open(r'AImoves.csv', 'a') as f:
 		    writer = csv.writer(f)
 		    writer.writerow(row)
-
-
-    #-----GAME MANAGEMENT METHODS
 		
 		
-	def next_player(self):
+	def next_player(self): #rotates the current player
 		if self.curr_player == self.player1:
 			self.curr_player = self.player2
 		else:
@@ -213,7 +215,7 @@ def menu():
 	if player2_type.get() == 'Human':
 		player2_type = 'H'
 
-	def launch(): 
+	def launch():  #launching the game. Setting the starting player
 		if whostarts.get() == "Player1":
 			player2starts = False
 		else:
