@@ -1,17 +1,16 @@
 
 import copy
 import math
-
+import random
 
 class State:
-	
 	def __init__(self,n,difficulty,board=None):
 		'''
 		members: 
 			ASSUMPTION: max player is X
 			2d list - board
 		'''
-		difficulties = {'easy' : self.eval, 'medium': self.eval,'hard':self.eval, 'Jarvis':self.eval2 }
+		difficulties = {'easy' : self.easy_eval, 'medium': self.medium_eval,'hard':self.eval, 'Jarvis':self.jarvis_eval}
 		self.difficulty = difficulty
 		self.eval_f = difficulties[self.difficulty]
 		'''
@@ -140,13 +139,22 @@ class State:
 			self.token = token
 		def __eq__(self,rhs):
 			return self.token == rhs.token
-	def eval(self):
+	def easy_eval(self): #gives same weight to every number of Xs and Os
+		return self.eval([1 for i in range(self.n-1,0,-1)])
+	def medium_eval(self): #gives different but not substantially different weights
+		return self.eval([(i-1)*1 for i in range(self.n-1,0,-1)])
+	def eval(self,eval_coefs = None): #weights differ by a factor of 3
+		eval_sum = 0
 		'''
+			input: eval_coefs must be size 2*(n-1)
 			assumes there is a tie
 			works best for 4x4 - non generic
 			count amount of X3s X2s and O3s and O1s
 			TODO: test generality
 		'''
+		if eval_coefs == None:
+			 eval_coefs = [(i-1)*3 for i in range(self.n-1,0,-1)]
+		eval_coefs[-1] = 1
 		var_list = [0] * (self.n-1) * 2 # [X3,X2,X1,O3,O2,O1]
 		#[x4,x3,x2,x1,o4,o3,o2,o1]
 		#[0.  1. 2. 3. 4. 5. 6. 7]
@@ -170,9 +178,8 @@ class State:
 			increment_vars(col)
 		increment_vars(diag1)
 		increment_vars(diag2)
-		eval_coefs = [(i-1)*3 for i in range(self.n-1,0,-1)]
-		eval_coefs[-1] = 1
-		eval_sum = 0
+		
+		
 		#print(var_list,eval_coefs,end='\n')
 		for i in range(self.n-1): #summing Xs
 			eval_sum += (eval_coefs[i] * var_list[i])
@@ -180,19 +187,34 @@ class State:
 			eval_sum -= (eval_coefs[i-(self.n-1)] * var_list[i])
 		return (eval_sum,var_list)
 	
-	def eval2(self):
+	def jarvis_eval(self): 
+		'''
+		#enhances the value of a close to -win. Avoiding creation of double opportunities
 		#intuition: building more options to win is more desireable than having as many in line
+		
+		#in 4x4: twice X2 should be more valuable than once X3, but X3 should be more valuable than one or 3 X2
 		min_tokens  = math.ceil(self.n/2) #this will be the point from which we consider a situation that a player has a chance to win
 		eval_sum, var_list = self.eval()
 		Xoptions = var_list[self.n - 1 - min_tokens] 
 		Ooptions = var_list[2*(self.n - 1) - min_tokens] 
-		print([Xoptions,Ooptions])
 		if Xoptions >= 2:
-			eval_sum += Xoptions * 100
+			eval_sum += Xoptions * 50
 		if Ooptions >= 2:
-			eval_sum -= Ooptions * 100
+			eval_sum -= Ooptions * 50
 		return (eval_sum,var_list)
-import random	
+		'''
+		eval_sum, var_list = self.eval()
+		#dominate the center
+		for row in self.board[1:-1]:
+			for cell in row[1:-1]:
+				if cell == 'O':
+					eval_sum -= 2
+				elif cell == 'X':
+					eval_sum += 2
+		return eval_sum
+		#create
+
+
 def rand_move():
 	tokens = ['X','O']
 	rand_tok = tokens[random.randint(0,1)]

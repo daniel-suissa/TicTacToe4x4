@@ -1,7 +1,7 @@
 
 class AIPlayer:
-	diff = {'easy': 1, 'medium' : 2, 'hard' : 3}
-	increments = {'easy': 0, 'medium' : 0, 'hard' : 2}
+	diff = {'easy': 1, 'medium' : 2, 'hard' : 3, 'Jarvis' : 3}
+	increments = {'easy': 0, 'medium' : 0, 'hard' : 2, 'Jarvis':2}
 	#easy   1 2 3
 	#medium 2 3 4 5 6 7
 	#hard   3 5 7 9
@@ -9,15 +9,17 @@ class AIPlayer:
 		'''
 		difficulty determines cutoff
 		'''
+		self.difficulty = difficulty
 		self.increment = AIPlayer.increments[difficulty]
 		self.cutoff = AIPlayer.diff[difficulty]
 		self.token = token
 		self.name = 'AI PLayer'
-		self.num_moves = 0
 		if self.token == 'X':
 			self.opponent = 'O'
 		else:
 			self.opponent = 'X'
+	def restart(self):
+		self.cutoff = AIPlayer.diff[self.difficulty]
 	def move(self,state):
 		'''
 		'''
@@ -28,9 +30,7 @@ class AIPlayer:
 		pruning_min = 0
 		#note that depth will contain the current depth and depth_reached is the max depth reached in the current subtree
 		v,move,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min = self.max(state,state.min_util,state.max_util,0,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min)
-		#state.make_move(*move) #to make move directly through console
 		print('cutoff_level: ', self.cutoff, 'did_cutoff?: ', did_cutoff, ' depth_reached: ', depth_reached, '#nodes: ', nodes_count, ' max pruning: ', pruning_max, ' min_pruning: ', pruning_min)
-		self.num_moves += 2
 		self.cutoff += self.increment
 		return move
 	def max(self,state,alpha,beta,depth,did_cutoff,depth_reached,nodes_count,pruning_max,pruning_min):
