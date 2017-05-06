@@ -176,6 +176,7 @@ def menu():
 	difficulty = StringVar()
 	difficulty_options = OptionMenu(root, difficulty,"easy","medium","hard","Jarvis")
 	difficulty_options.grid(row = 2, column = 2)
+	difficulty_options.config(width = 8)
 	difficulty.set("hard")
 	#player 1 is always a human
 	player1_name = StringVar()
@@ -196,6 +197,7 @@ def menu():
 	player2_type = StringVar()
 	player2_type_options = OptionMenu(root, player2_type, "Human", "AI")
 	player2_type_options.grid(row = 5, column = 2)
+	player2_type_options.config(width = 8)
 	player2_type.set("AI")
 
 
@@ -205,6 +207,7 @@ def menu():
 	#whostarts.set("Player1") #TODO: set a default
 	whostarts_options = OptionMenu(root, whostarts, "Player1", "Player2")
 	whostarts_options.grid(row = 6, column = 2)
+	whostarts_options.config(width = 8)
 	
 
 	if player2_type.get() == 'Human':

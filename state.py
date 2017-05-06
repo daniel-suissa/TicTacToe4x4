@@ -71,7 +71,7 @@ class State:
 		if token != 'O' and token != 'X':
 			raise Exception('TokenInvalidError')
 		'''
-			check validity of location
+			check validity outputf location
 			put token in give location
 			output: True if ok, False if move wasn't made
 		'''
@@ -188,31 +188,46 @@ class State:
 		return (eval_sum,var_list)
 	
 	def jarvis_eval(self): 
+		eval_sum = 0
 		'''
-		#enhances the value of a close to -win. Avoiding creation of double opportunities
-		#intuition: building more options to win is more desireable than having as many in line
+			input: eval_coefs must be size 2*(n-1)
+			assumes there is a tie
+			works best for 4x4 - non generic
+			count amount of X3s X2s and O3s and O1s
+			TODO: test generality
+		'''
+		eval_coefs = [7,4,2,6,3,1]
+		var_list = [0] * (self.n-1) * 2 # [X3,X2,X1,O3,O2,O1]
+		#[x4,x3,x2,x1,o4,o3,o2,o1]
+		#[0.  1. 2. 3. 4. 5. 6. 7]
+		#board = [[State.tokenRef(token) for token in row] for row in copy.deepcopy(self.board)] # holds references to a copy of the board
+		board = copy.deepcopy(self.board)
+		flipped_board = [[board[i][j] for i in range(self.n) ] for j in range(self.n)] #now columns are grouped together
+		diag1 = [board[i][i] for i in range(self.n)]
+		diag2 = [board[i][(self.n-1)-i] for i in range(self.n)]
+		def increment_vars(lst):
+			count_X = lst.count('X')
+			count_O = lst.count('O')
+			if count_X > 0 and count_O == 0:
+				var_list[(self.n-1)-count_X] += 1
+			if count_X == 0 and count_O > 0:
+				var_list[2*(self.n-1)-count_O] += 1
+
+		for row in board:
+			increment_vars(row)
+
+		for col in flipped_board:
+			increment_vars(col)
+		increment_vars(diag1)
+		increment_vars(diag2)
 		
-		#in 4x4: twice X2 should be more valuable than once X3, but X3 should be more valuable than one or 3 X2
-		min_tokens  = math.ceil(self.n/2) #this will be the point from which we consider a situation that a player has a chance to win
-		eval_sum, var_list = self.eval()
-		Xoptions = var_list[self.n - 1 - min_tokens] 
-		Ooptions = var_list[2*(self.n - 1) - min_tokens] 
-		if Xoptions >= 2:
-			eval_sum += Xoptions * 50
-		if Ooptions >= 2:
-			eval_sum -= Ooptions * 50
+		
+		#print(var_list,eval_coefs,end='\n')
+		for i in range(self.n-1): #summing Xs
+			eval_sum += (eval_coefs[i] * var_list[i])
+		for i in range(self.n-1,self.n*2-2): #subtracting Os
+			eval_sum -= (eval_coefs[i] * var_list[i])
 		return (eval_sum,var_list)
-		'''
-		eval_sum, var_list = self.eval()
-		#dominate the center
-		for row in self.board[1:-1]:
-			for cell in row[1:-1]:
-				if cell == 'O':
-					eval_sum -= 2
-				elif cell == 'X':
-					eval_sum += 2
-		return eval_sum
-		#create
 
 
 def rand_move():
